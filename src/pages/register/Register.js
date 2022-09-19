@@ -1,19 +1,19 @@
-import { useFormik } from 'formik'
-import TextField from '@mui/material/TextField'
-import { S } from './Register.styled'
-import registerImg from '../../images/registerImg.png'
-import Button from '@mui/material/Button'
-import validationSchemas from '../../schemas/validationSchemas'
+import { Button, TextField, useTheme } from '@mui/material'
 import { useState, useContext } from 'react'
+import { useFormik } from 'formik'
 import { useNavigate } from 'react-router-dom'
-import Context from '../../Context'
 import axios from 'axios'
+import validationSchemas from '../../schemas/validationSchemas'
+import Context from '../../Context'
+import { S } from './Register.styled'
+import BackHomeButton from '../../components/backHomeButton/BackHomeButton'
 
 const Register = () => {
   const [exsist, setExsist] = useState(false)
-  const { loggedUser, setLoggedUser, usersList, setUsersList } =
-    useContext(Context)
+  const { palette } = useTheme()
   const navigate = useNavigate()
+  const { setLoggedUser, usersList, setUsersList, themeColor } =
+    useContext(Context)
 
   const onSubmit = async (values, actions) => {
     const isThere = usersList.some(({ name, email }) =>
@@ -73,27 +73,21 @@ const Register = () => {
 
   const TextFieldStyle = { marginTop: '30px ', width: '100%' }
 
-  // useEffect(() => {
-  //   const items = JSON.parse(localStorage.getItem('users'))
-  //   setItems(items)
-  // }, [])
-  const data = {
-    ...values,
-    data: { stats: [], arenaMembers: [], favouritesPokemons: [] },
-  }
-  console.log(data, 'data')
   return (
     <S.MainWrapper>
-      {/* {loggedUser && <Navigate to="/" />} */}
       <form onSubmit={handleSubmit} autoComplete="off">
-        {/* <img
-          style={{ position: 'absolute', right: '50px', top: '80px' }}
-          src={registerImg}
-          alt="registerImg"
-        /> */}
-        <S.FormWrapper>
-          <h1 style={{ width: '100%', textAlign: 'center' }}>Rejestracja</h1>
+        <S.FormWrapper color={palette[themeColor].simplePokemonCard}>
+          <S.H1
+            color={
+              palette[themeColor] === 'dark'
+                ? palette.loginButtonDark.main
+                : palette.loginButtonColor.main
+            }
+          >
+            Rejestracja
+          </S.H1>
           <TextField
+            color={themeColor}
             id="name"
             label="Imię"
             sx={TextFieldStyle}
@@ -105,9 +99,12 @@ const Register = () => {
             error={errors.name && touched.name ? true : false}
           />
           {touched.name && errors.name !== '' && (
-            <S.ValidationErrorMessage>{errors.name}</S.ValidationErrorMessage>
+            <S.ValidationErrorMessage color={palette[themeColor].error}>
+              {errors.name}
+            </S.ValidationErrorMessage>
           )}
           <TextField
+            color={themeColor}
             id="email"
             label="Email"
             sx={TextFieldStyle}
@@ -118,9 +115,12 @@ const Register = () => {
             error={errors.email && touched.email ? true : false}
           />
           {touched.email && errors.email !== '' && (
-            <S.ValidationErrorMessage>{errors.email}</S.ValidationErrorMessage>
+            <S.ValidationErrorMessage color={palette[themeColor].error}>
+              {errors.email}
+            </S.ValidationErrorMessage>
           )}
           <TextField
+            color={themeColor}
             id="password"
             label="Hasło"
             sx={TextFieldStyle}
@@ -131,11 +131,12 @@ const Register = () => {
             error={errors.password && touched.password ? true : false}
           />
           {touched.password && errors.password !== '' && (
-            <S.ValidationErrorMessage>
+            <S.ValidationErrorMessage color={palette[themeColor].error}>
               {errors.password}
             </S.ValidationErrorMessage>
           )}
           <TextField
+            color={themeColor}
             id="confirmPassword"
             label="Potwierdź hasło"
             sx={TextFieldStyle}
@@ -148,14 +149,19 @@ const Register = () => {
             }
           />
           {touched.confirmPassword && errors.confirmPassword !== '' && (
-            <S.ValidationErrorMessage>
+            <S.ValidationErrorMessage color={palette[themeColor].error}>
               {errors.confirmPassword}
             </S.ValidationErrorMessage>
           )}
           {exsist && (
-            <p style={{ color: '#d32f2f' }}>Imię lub email istnieje </p>
+            <S.Error color={palette[themeColor].error}>
+              Imię lub email istnieje
+            </S.Error>
           )}
           <Button
+            color={
+              themeColor === 'dark' ? 'loginButtonDark' : 'loginButtonColor'
+            }
             sx={{ marginTop: '30px ', height: '55px', width: '100%' }}
             disabled={isSubmitting}
             type="submit"
@@ -165,6 +171,7 @@ const Register = () => {
           </Button>
         </S.FormWrapper>
       </form>
+      <BackHomeButton />
     </S.MainWrapper>
   )
 }

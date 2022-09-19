@@ -2,25 +2,38 @@ import styled from 'styled-components'
 
 export const S = {
   MainWrapper: styled.div`
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
     align-items: center;
-    width: 100%;
+    display: flex;
+    flex-direction: column;
     height: 100%;
-    background-color: rgba(30, 29, 28, 0.1);
+    justify-content: space-between;
+    padding: 70px 0 10px 0;
+    width: 100%;
   `,
   FormWrapper: styled.div`
+    align-items: center;
+    background-color: ${({ color }) => color};
+    border-radius: 10px;
     display: flex;
     flex-direction: column;
-
     justify-content: center;
-    border-radius: 10px;
-    padding: 50px 20px;
-    background-color: rgba(3, 79, 28, 0.1);
-    width: 500px;
+    padding: 10px 20px 50px 20px;
+    position: relative;
+    width: 600px;
+    @media (max-width: 768px) {
+      width: 400px;
+    }
   `,
   ValidationErrorMessage: styled.span`
-    color: #d32f2f;
+    color: ${({ color }) => color};
+  `,
+  H1: styled.h1`
+    color: ${({ color }) => color};
+    text-align: center;
+    width: 100%;
+  `,
+
+  Error: styled.p`
+    color: ${({ color }) => color};
   `,
 }

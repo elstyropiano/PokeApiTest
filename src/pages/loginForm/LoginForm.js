@@ -1,18 +1,19 @@
 import { useFormik } from 'formik'
-import TextField from '@mui/material/TextField'
 import { S } from './LoginForm.styled'
-import registerImg from '../../images/registerImg.png'
-import Button from '@mui/material/Button'
 import loginSchemas from '../../schemas/loginSchemas'
-import { useState } from 'react'
+import { useState, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useContext } from 'react'
 import Context from '../../Context'
-
+import BackHomeButton from '../../components/backHomeButton/BackHomeButton'
+import { useTheme, TextField, Button } from '@mui/material'
+import { useSnackbar } from 'notistack'
 const LoginForm = () => {
+  const { enqueueSnackbar } = useSnackbar()
+  const { palette } = useTheme()
   const [loginError, setLoginError] = useState(false)
-  const { setLoggedUser, usersList } = useContext(Context)
+  const { setLoggedUser, usersList, themeColor } = useContext(Context)
   const navigate = useNavigate()
+
   const onSubmit = async (values, actions) => {
     const isOk = usersList.some(
       ({ email, password }) =>
@@ -29,11 +30,18 @@ const LoginForm = () => {
           }
           window.localStorage.setItem('logged', JSON.stringify(data))
           setLoggedUser(data)
-          navigate('/')
         }
       })
       await new Promise(resolve => {
         setTimeout(resolve, 1000)
+      })
+      navigate('/edycja')
+      enqueueSnackbar('Zalogowano', {
+        variant: 'success',
+        anchorOrigin: {
+          horizontal: 'center',
+          vertical: 'top',
+        },
       })
     } else setLoginError(true)
   }
@@ -57,18 +65,22 @@ const LoginForm = () => {
   return (
     <S.MainWrapper>
       <form onSubmit={handleSubmit} autoComplete="off">
-        {/* <img
-          style={{ position: 'absolute', right: '50px', top: '80px' }}
-          src={registerImg}
-          alt="registerImg"
-        /> */}
-        <S.FormWrapper>
-          <h1 style={{ width: '100%', textAlign: 'center' }}>Logowanie</h1>
+        <S.FormWrapper color={palette[themeColor].simplePokemonCard}>
+          <S.H1
+            color={
+              palette[themeColor] === 'dark'
+                ? palette.loginButtonDark.main
+                : palette.loginButtonColor.main
+            }
+          >
+            Logowanie
+          </S.H1>
           <TextField
             id="email"
             label="Email"
             sx={TextFieldStyle}
             type="text"
+            color={themeColor}
             value={values.email}
             onChange={handleChange}
             onBlur={handleBlur}
@@ -76,7 +88,9 @@ const LoginForm = () => {
             error={errors.email && touched.email ? true : false}
           />
           {touched.email && errors.email !== '' && (
-            <S.ValidationErrorMessage>{errors.email}</S.ValidationErrorMessage>
+            <S.ValidationErrorMessage color={palette[themeColor].error}>
+              {errors.email}
+            </S.ValidationErrorMessage>
           )}
           <TextField
             id="password"
@@ -87,28 +101,32 @@ const LoginForm = () => {
             onChange={handleChange}
             onBlur={handleBlur}
             error={errors.password && touched.password ? true : false}
+            color={themeColor}
           />
           {touched.password && errors.password !== '' && (
-            <S.ValidationErrorMessage>
+            <S.ValidationErrorMessage color={palette[themeColor].error}>
               {errors.password}
             </S.ValidationErrorMessage>
           )}
-
           {loginError && (
-            <p style={{ color: '#d32f2f' }}>
+            <S.Error color={palette[themeColor].error}>
               Wprowadź poprawne dane użytkownika
-            </p>
+            </S.Error>
           )}
           <Button
-            sx={{ marginTop: '30px ', height: '55px', width: '100%' }}
             disabled={isSubmitting}
             type="submit"
             variant="contained"
+            color={
+              themeColor === 'dark' ? 'loginButtonDark' : 'loginButtonColor'
+            }
+            sx={{ marginTop: '30px ', height: '55px', width: '100%' }}
           >
             Zaloguj się
           </Button>
         </S.FormWrapper>
       </form>
+      <BackHomeButton />
     </S.MainWrapper>
   )
 }

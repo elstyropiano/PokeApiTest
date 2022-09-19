@@ -1,59 +1,42 @@
-import { Routes, Route, Link, useNavigate } from 'react-router-dom'
 import SimpleNavButton from '../simpleNavButton/SimpleNavButton'
 import { S } from './NavBar.styled'
 import Context from '../../Context'
-import { useContext } from 'react'
-import IconButton from '@mui/material/IconButton'
-import Button from '@mui/material/Button'
-import LogoutIcon from '@mui/icons-material/Logout'
-const buttonsText = ['Ulubione', 'Arena', 'Logowanie', 'Rejestracja']
-
+import Logo from '../logo/Logo'
+import { useEffect, useState, useContext } from 'react'
+import PersonIcon from '@mui/icons-material/Person'
+import { useTheme } from '@mui/material'
+import SwitchTheme from '../switchTheme/SwitchTheme'
 const NavBar = () => {
-  const navigate = useNavigate()
-  const { loggedUser, setLoggedUser } = useContext(Context)
-  const handleButton = () => {
-    localStorage.removeItem('logged')
-    setLoggedUser(null)
-    navigate('/')
-  }
+  const { palette } = useTheme()
+  const { loggedUser, setLoggedUser, themeColor } = useContext(Context)
+  const [buttonsTextArray, setButtonsTextArray] = useState([])
+
+  useEffect(() => {
+    const buttonsTextArray = loggedUser
+      ? ['Ulubione', 'Arena', 'Edycja']
+      : ['Ulubione', 'Arena', 'Logowanie', 'Rejestracja']
+    setButtonsTextArray(buttonsTextArray)
+  }, [loggedUser])
+  console.log(themeColor, 'theme w navbar')
   return (
-    <S.Wrapper>
-      <h1>Pokedex</h1>
-      {loggedUser && <span>Zalogowano jako: {loggedUser.name}</span>}
+    <S.Wrapper color={palette[themeColor].navBar}>
+      <SwitchTheme />
+      <Logo />
+      {loggedUser && (
+        <S.LoggedUserName color={palette[themeColor].contrastText}>
+          <PersonIcon />
+          {loggedUser.name}
+        </S.LoggedUserName>
+      )}
       <S.Ul>
-        {buttonsText.map(text => {
-          if ((text === 'Logowanie' || text === 'Rejestracja') && loggedUser) {
-            return
-          }
-          return <SimpleNavButton key={text} text={text} />
-        })}
+        {buttonsTextArray.map(text => (
+          <SimpleNavButton key={text} text={text} />
+        ))}
         {loggedUser && (
-          <>
-            <SimpleNavButton text={'Edycja'} />
-            <Link to="/">
-              <Button
-                onClick={handleButton}
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-                size="large"
-                variant="outlined"
-              >
-                <LogoutIcon
-                  sx={{
-                    margin: '0 5px',
-                  }}
-                />
-                Wyloguj
-              </Button>
-            </Link>
-          </>
+          <SimpleNavButton setLoggedUser={setLoggedUser} text="Wyloguj" />
         )}
       </S.Ul>
     </S.Wrapper>
   )
 }
-
 export default NavBar

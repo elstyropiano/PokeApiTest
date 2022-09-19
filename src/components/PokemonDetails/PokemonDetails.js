@@ -1,20 +1,18 @@
 import { useContext, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import useFetch from '../../hooks/useFetch'
+import { useParams, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import Context from '../../Context'
 import Description from '../description/Description'
-import CircularProgress from '@mui/material/CircularProgress'
 import { S } from './PokemonDetails.styled'
-
-const PokemonDetails = ({ url }) => {
+import { useTheme } from '@mui/material'
+const PokemonDetails = () => {
+  const location = useLocation()
   const { id } = useParams()
-  const { data, error, loading } = useFetch(url)
   const [fullArenaWarning, setFullArenaWarning] = useState(false)
   const [pokemonIsInFavourite, setPokemonIsInFavourite] = useState(null)
   const [pokemonIsInArena, setPokemonIsInArena] = useState(null)
-  const [dataToArena, setDataToArena] = useState(null)
-  const [dataToFavourites, setDataToFavourites] = useState(null)
+  const [pokemonData, setPokemonData] = useState(null)
+  const { palette } = useTheme()
   const [idFavouritesFromJsonServer, setIdFavouritesFromJsonServer] =
     useState(null)
   const [idArenaMemberFromJsonServer, setIdArenaMemberFromJsonServer] =
@@ -24,139 +22,124 @@ const PokemonDetails = ({ url }) => {
     setArenaMembers,
     favouritesPokemons,
     setFavouritesPokemons,
-    showDeleteSuccesOnConsole,
-    showErrorMessageOnConsole,
-    statsFromJsonServer,
-    loggedUser,
-    setLoggedUser,
+    themeColor,
   } = useContext(Context)
 
-  const checkPokemonIsInArr = array => array?.some(({ name }) => name === id)
+  const checkPokemonIsInArr = array => array.some(({ name }) => name === id)
+
+  useEffect(() => {
+    const {
+      ability,
+      experience,
+      height,
+      img,
+      name,
+      speed,
+      weight,
+      wins,
+      loses,
+    } = location.state.pokemonData
+    const data = {
+      ability,
+      experience,
+      height,
+      img,
+      name,
+      speed,
+      weight,
+      wins,
+      loses,
+    }
+    setPokemonData(data)
+  }, [])
 
   useEffect(() => {
     if (favouritesPokemons) {
-      const dataToSendToFavourites = { name: id, url }
       const isThere = checkPokemonIsInArr(favouritesPokemons)
       setPokemonIsInFavourite(isThere)
-      isThere
-        ? favouritesPokemons.map(({ name }, index) => {
-            if (name === id) {
-              const id = favouritesPokemons[index].id
-              console.log(id, 'favouritesPokemons id w useEffect')
-              setIdFavouritesFromJsonServer(id)
-            }
-          })
-        : setDataToFavourites(dataToSendToFavourites)
+      if (isThere)
+        favouritesPokemons.map(({ name }, index) => {
+          if (name === id) {
+            const id = favouritesPokemons[index].id
+            setIdFavouritesFromJsonServer(id)
+          }
+        })
     }
   }, [favouritesPokemons])
 
   useEffect(() => {
-    if (data) {
-      const { height, weight, stats, base_experience } = data
-      const speed = stats[5].base_stat
+    if (arenaMembers) {
       const isThere = checkPokemonIsInArr(arenaMembers)
       setPokemonIsInArena(isThere)
-      const dataToArena = isThere
-        ? arenaMembers.map(({ name, wins, loses, experience }, index) => {
-            if (name === id) {
-              const id = arenaMembers[index].id
-              setIdArenaMemberFromJsonServer(id)
-              return {
-                name: id,
-                experience,
-                height,
-                weight,
-                speed,
-                wins,
-                loses,
-                url,
-              }
-            }
-          })
-        : {
-            name: id,
-            experience: base_experience,
-            height,
-            weight,
-            speed,
-            wins: 0,
-            loses: 0,
-            url,
+      if (isThere)
+        arenaMembers.map(({ name }, index) => {
+          if (name === id) {
+            const id = arenaMembers[index].id
+            setIdArenaMemberFromJsonServer(id)
           }
-      setDataToArena(dataToArena)
+        })
     }
-  }, [arenaMembers, data])
+  }, [arenaMembers])
 
   const handleIcon = endpoint => {
     if (endpoint === 'favouritesPokemons')
       pokemonIsInFavourite
         ? deleteFromServer(endpoint, idFavouritesFromJsonServer)
-        : postDataOnServer(endpoint, dataToFavourites)
+        : postDataOnServer(endpoint, pokemonData)
     else {
       if (pokemonIsInArena)
         deleteFromServer(endpoint, idArenaMemberFromJsonServer)
       else {
         arenaMembers.length === 2
           ? setFullArenaWarning(true)
-          : postDataOnServer(endpoint, dataToArena)
+          : postDataOnServer(endpoint, pokemonData)
       }
     }
   }
 
   const deleteFromServer = async (endpoint, id) => {
-    await axios
-      .delete(`http://localhost:3000/${endpoint}/${id}`)
-      .then(response => {
-        endpoint === 'arenaMembers'
-          ? getArenaMembers()
-          : getFavouritesPokemons()
-        showDeleteSuccesOnConsole()
-      })
-      .catch(error => console.error('There was error: ', error))
+    try {
+      await axios.delete(`http://localhost:3000/${endpoint}/${id}`)
+      endpoint === 'arenaMembers' ? getArenaMembers() : getFavouritesPokemons()
+    } catch (err) {
+      console.log(err)
+    }
+  }
+  const postDataOnServer = async (endpoint, data) => {
+    try {
+      await axios.post(`http://localhost:3000/${endpoint}`, data)
+      endpoint === 'arenaMembers' ? getArenaMembers() : getFavouritesPokemons()
+    } catch (err) {
+      console.log(err)
+    }
+  }
+  const getFavouritesPokemons = async () => {
+    try {
+      const response = await axios.get(
+        'http://localhost:3000/favouritesPokemons'
+      )
+      setFavouritesPokemons(response.data)
+    } catch (err) {
+      console.log(err)
+    }
+  }
+  const getArenaMembers = async () => {
+    try {
+      const response = await axios.get('http://localhost:3000/arenaMembers')
+      setArenaMembers(response.data)
+    } catch (err) {
+      console.log(err)
+    }
   }
 
-  const postDataOnServer = async (endpoint, data) =>
-    await axios
-      .post(`http://localhost:3000/${endpoint}`, data)
-      .then(response =>
-        endpoint === 'arenaMembers'
-          ? getArenaMembers()
-          : getFavouritesPokemons()
-      )
-      .catch(error => showErrorMessageOnConsole(error))
-
-  const getFavouritesPokemons = async () =>
-    await axios
-      .get('http://localhost:3000/favouritesPokemons')
-      .then(response => setFavouritesPokemons(response.data))
-      .catch(error => showErrorMessageOnConsole(error))
-
-  const getArenaMembers = async () =>
-    await axios
-      .get('http://localhost:3000/arenaMembers')
-      .then(response => {
-        setArenaMembers(response.data)
-      })
-      .catch(error => showErrorMessageOnConsole(error))
-
   return (
-    <S.Wrapper>
-      {error && <h1>Error:{error}</h1>}
-      {loading && (
-        <>
-          <CircularProgress />
-          <p>...LOADING</p>
-        </>
-      )}
-      {data && (
-        <>
+    <>
+      {pokemonData && (
+        <S.Wrapper color={palette[themeColor].simplePokemonCard}>
           <S.ImgWrapper>
-            <S.Img
-              src={`${data?.sprites.other.dream_world.front_default}`}
-              alt={data?.name}
-            />
+            <S.Img src={pokemonData.img} alt={pokemonData.name} />
           </S.ImgWrapper>
-          <Description data={data} />
+          <Description pokemonData={pokemonData} />
 
           <S.FavoriteIcon
             fav={pokemonIsInFavourite}
@@ -168,69 +151,16 @@ const PokemonDetails = ({ url }) => {
             onClick={() => handleIcon('arenaMembers')}
             inarena={pokemonIsInArena}
           />
-
           <S.ArenaMember warning={arenaMembers?.length === 2}>
             {`${arenaMembers?.length}/2`}
           </S.ArenaMember>
           {fullArenaWarning && (
             <S.FullArenaInfo>Arena jest pełna</S.FullArenaInfo>
           )}
-        </>
+        </S.Wrapper>
       )}
-    </S.Wrapper>
+    </>
   )
 }
 
 export default PokemonDetails
-// useEffect(() => {
-//   if (data) {
-//     // const isInArena = checkPokemonIsInArr(statsFromJsonServer)
-//     // const isInFavourties = checkPokemonIsInArr(favouritesPokemons)
-
-//     const dataToArena = pokemonIsInArena
-//       ? arenaMembers.map(({ name, wins, loses, experience }, index) => {
-//           if (name === id) {
-//             const id = arenaMembers[index].id
-//             setIdArenaMemberFromJsonServer(id)
-//             return {
-//               name: id,
-//               experience,
-//               height,
-//               weight,
-//               speed,
-//               wins,
-//               loses,
-//               url,
-//             }
-//           }
-//         })
-//       : {
-//           name: id,
-//           experience: base_experience,
-//           height,
-//           weight,
-//           speed,
-//           wins: 0,
-//           loses: 0,
-//           url,
-//         }
-
-//     // {setExperience(data?.base_experience)}
-
-//     setDataToArena(dataToArena)
-
-//     // setDataToFavourites(dataToSendToFavourites)
-//     // console.log(pokemonIsInFavourite, 'pokemonIsInFavourite')
-//     // pokemonIsInFavourite
-//     //   ? favouritesPokemons.map(({ name }, index) => {
-//     //       if (name === id) {
-//     //         const id = favouritesPokemons[index].id
-//     //         console.log(id, 'favouritesPokemons id w useEffect')
-//     //         setIdFavouritesFromJsonServer(id)
-//     //       }
-//     //     })
-//     //   : setDataToFavourites(dataToSendToFavourites)
-
-//     // postDataOnServer('favouritesPokemons', dataToSendToFavourites)
-//   }
-// }, [])

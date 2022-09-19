@@ -9,6 +9,7 @@ export const S = {
     align-items: center;
     justify-content: space-around;
     margin-top: 10px;
+    color: ${({ color }) => color};
   `,
   DoubleDecripionWrapper: styled.div`
     width: 100%;
@@ -36,17 +37,18 @@ export const S = {
     display: flex;
     flex-direction: column;
     align-items: center;
-    color: #848383;
+    color: ${({ color }) => color};
   `,
   SpanPropsName: styled.div`
     font-weight: 700;
     font-size: 16px;
-    color: black;
+    color: ${({ color }) => color};
   `,
   H1: styled.h1`
     padding: 0;
     margin: 0;
     font-size: ${({ details }) => (details ? '40px' : '30px')};
+    color: ${({ color }) => color};
   `,
 
   StatisticWrapper: styled.div`

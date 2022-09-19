@@ -1,103 +1,62 @@
-import useFetch from '../../hooks/useFetch'
-import Context from '../../Context'
 import Description from '../description/Description'
-import { useContext, useEffect, useState } from 'react'
 import { S } from './SimplePokemonCard.styled'
-import CircularProgress from '@mui/material/CircularProgress'
 import FightStats from '../fightStats/FightStats'
-import axios from 'axios'
+import DeleteFromArenaIcon from '../deleteFromArenaIcon/DeleteFromArenaIcon'
+import { useState } from 'react'
+import NewPokemonsButtons from '../newPokemonsButtons/NewPokemonsButtons'
+import { useTheme } from '@mui/material'
+import Context from '../../Context'
+import { useContext } from 'react'
 
-const SimplePokemonCard = ({ url, arena, list }) => {
-  const [wins, setWins] = useState(null)
-  const [loses, setLoses] = useState(null)
-  const [isInJsonServer, setIsInJsonServer] = useState(null)
-  const [name, setName] = useState(null)
-  const { data, error, loading } = useFetch(url)
-  const {
-    arenaMembers,
-    setArenaMembers,
-    statsFromJsonServer,
-    showDeleteSuccesOnConsole,
-    showErrorMessageOnConsole,
-  } = useContext(Context)
-
-  const checkPokemonIsInArr = array =>
-    array?.some(({ name }) => name === data?.name)
-
-  useEffect(() => {
-    if (data) {
-      setName(data.name)
-    }
-  }, [data])
-
-  useEffect(() => {
-    if (statsFromJsonServer) {
-      const isThere = checkPokemonIsInArr(statsFromJsonServer)
-      setIsInJsonServer(isThere)
-      if (isThere)
-        statsFromJsonServer?.map(({ name, wins, loses }) => {
-          if (name === data?.name) {
-            setWins(wins)
-            setLoses(loses)
-          }
-        })
-    }
-  }, [name])
-
-  const deleteArenaMember = () =>
-    arenaMembers.map(({ name }, index) => {
-      if (name === data?.name) {
-        const id = arenaMembers[index].id
-        ;(async () =>
-          axios
-            .delete(`http://localhost:3000/arenaMembers/${id}`)
-            .then(response => {
-              showDeleteSuccesOnConsole()
-              getArenaMembers()
-            })
-            .catch(error => showErrorMessageOnConsole(error)))()
-      }
-    })
-
-  const getArenaMembers = async () =>
-    await axios
-      .get('http://localhost:3000/arenaMembers')
-      .then(response => {
-        setArenaMembers(response.data)
-      })
-      .catch(error => showErrorMessageOnConsole(error))
+const SimplePokemonCard = ({
+  newPokemon,
+  arena,
+  list,
+  pokemonData,
+  createdPokemonData,
+  setCreateIsDone,
+}) => {
+  const { palette } = useTheme()
+  const { themeColor } = useContext(Context)
+  const [newPokemonImg, setNewPokemonImg] = useState(null)
 
   return (
-    <S.MainWrapper list={list} arena={arena}>
-      {error && <div>Error:{error}</div>}
-      {loading && (
+    <>
+      {newPokemon && (
         <>
-          <CircularProgress />
-          <p>...LOADING</p>
+          <NewPokemonsButtons
+            createdPokemonData={createdPokemonData}
+            setCreateIsDone={setCreateIsDone}
+            setNewPokemonImg={setNewPokemonImg}
+            newPokemonImg={newPokemonImg}
+          />
         </>
       )}
-      {data && (
-        <>
-          {isInJsonServer && <FightStats wins={wins} loses={loses} />}
-          {arena && (
-            <S.ClearIcon
-              fontSize="large"
-              color="info"
-              onClick={deleteArenaMember}
-            />
-          )}
-          <S.PokemonWrapper>
-            <S.ImgWrapper>
-              <S.Img
-                src={`${data?.sprites.other.dream_world.front_default}`}
-                alt={data?.name}
-              />
-            </S.ImgWrapper>
-            <Description data={data} />
-          </S.PokemonWrapper>
-        </>
-      )}
-    </S.MainWrapper>
+      <S.MainWrapper
+        list={list}
+        arena={arena}
+        color={palette[themeColor].simplePokemonCard}
+      >
+        {pokemonData && (
+          <>
+            {'wins' in pokemonData &&
+              (pokemonData.wins !== 0 || pokemonData.loses !== 0) && (
+                <FightStats wins={pokemonData.wins} loses={pokemonData.loses} />
+              )}
+            {arena && <DeleteFromArenaIcon pokemonData={pokemonData} />}
+            <S.PokemonWrapper>
+              <S.ImgWrapper>
+                <S.Img
+                  src={newPokemon ? newPokemonImg : pokemonData.img}
+                  alt={pokemonData.name}
+                />
+              </S.ImgWrapper>
+              <Description pokemonData={pokemonData} />
+            </S.PokemonWrapper>
+          </>
+        )}
+      </S.MainWrapper>
+    </>
   )
 }
 

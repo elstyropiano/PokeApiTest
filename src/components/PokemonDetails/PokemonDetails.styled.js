@@ -14,6 +14,7 @@ export const S = {
     display: flex;
     justify-content: center;
     align-items: center;
+    background-color: ${({ color }) => color};
   `,
   ImgWrapper: styled.div`
     height: 50%;

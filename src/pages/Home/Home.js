@@ -1,39 +1,55 @@
-import TextField from '@mui/material/TextField'
-import PokemonList from '../../components/pokemonList/PokemonList'
+import PokemonListHome from '../../components/pokemonListHome/PokemonListHome'
 import Context from '../../Context'
-import { useState, useContext } from 'react'
+import { useState, useContext, useEffect } from 'react'
 import Pagination from '../../components/pagination/Pagination'
 import { S } from './Home.styled'
+import { useTheme } from '@mui/material'
+import axios from 'axios'
 
 const Home = () => {
-  const { pokemonsArrayFromApi, setFilteredPokemons } = useContext(Context)
-  const [value, setValue] = useState([])
+  const [value, setValue] = useState('')
   const [warning, setWarning] = useState(false)
+  const { palette } = useTheme()
+  const {
+    setFilteredPokemons,
+    filteredPokemonsCopy,
+    page,
+    themeColor,
+    // setStatsFromJsonServser,
+  } = useContext(Context)
+
+  useEffect(() => {
+    setValue('')
+    setWarning(false)
+  }, [page])
 
   const handleInput = e => {
     const inputValue = e.target.value
-    setValue(inputValue)
-    const filteredPokemonsArr = pokemonsArrayFromApi?.filter(({ name }) =>
+    const newPokemonsArr = [...filteredPokemonsCopy]
+    const newfilteredPokemons = newPokemonsArr?.filter(({ name }) =>
       name.includes(inputValue)
     )
-    const noPokemonsWarning = filteredPokemonsArr.length === 0 ? true : false
+    const noPokemonsWarning = newfilteredPokemons.length === 0 ? true : false
+    setValue(inputValue)
     setWarning(noPokemonsWarning)
-    setFilteredPokemons(filteredPokemonsArr)
+    setFilteredPokemons(newfilteredPokemons)
   }
-
   return (
-    <S.Wrapper>
-      <TextField
+    <S.Wrapper color={palette[themeColor].contrastText}>
+      <S.TextField
+        color={themeColor}
         onChange={handleInput}
         value={value}
-        label="Search "
-        InputProps={{
-          type: 'search',
-        }}
+        label="Wyszukaj pokemona "
+        sx={{ margin: '30px 0' }}
       />
       <Pagination />
-      {warning && <h1> Brak wyników wyszukiwania </h1>}
-      <PokemonList />
+      {warning && (
+        <S.NoResults color={palette[themeColor].navBar}>
+          Brak wyników wyszukiwania
+        </S.NoResults>
+      )}
+      <PokemonListHome />
     </S.Wrapper>
   )
 }

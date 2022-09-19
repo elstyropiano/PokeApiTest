@@ -1,26 +1,27 @@
 import SimplePokemonCard from '../simplePokemonCard/SimplePokemonCard'
-import { Link } from 'react-router-dom'
-import { useContext } from 'react'
-import Context from '../../Context'
 import { S } from './PokemonList.styled'
-const PokemonList = () => {
-  const { setLink, filteredPokemons } = useContext(Context)
+import { useTheme } from '@mui/material'
+import Context from '../../Context'
+import { useContext } from 'react'
+import Zoom from 'react-reveal/Zoom'
 
+const PokemonList = ({ array }) => {
+  const { palette } = useTheme()
+  const { themeColor } = useContext(Context)
   return (
     <S.Wrapper>
-      {filteredPokemons?.map(({ name, url }) => {
-        return (
-          <Link
-            onClick={() => {
-              setLink(url)
-            }}
-            to={`/pokemon/${name}`}
-            key={name}
-          >
-            <SimplePokemonCard list url={url} />
-          </Link>
-        )
-      })}
+      {array?.map(pokemonData => (
+        <S.Link
+          color={palette[themeColor].navBar}
+          state={{ pokemonData }}
+          to={`/pokemon/${pokemonData.name}`}
+          key={pokemonData.name}
+        >
+          <Zoom>
+            <SimplePokemonCard list pokemonData={pokemonData} />
+          </Zoom>
+        </S.Link>
+      ))}
     </S.Wrapper>
   )
 }

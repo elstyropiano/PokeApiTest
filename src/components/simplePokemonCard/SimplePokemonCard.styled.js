@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 import StadiumIcon from '@mui/icons-material/Stadium'
 import FavoriteIcon from '@mui/icons-material/Favorite'
-import ClearIcon from '@mui/icons-material/Clear'
+
 export const S = {
   DoubleDecripionWrapper: styled.div`
     width: 100%;
@@ -55,11 +55,14 @@ export const S = {
     width: ${({ details }) => (details ? '80%' : '310px')};
     position: relative;
     border-radius: 10px;
-    background-color: ${({ details }) => (details ? 'white' : 'lightgray')};
+    background-color: ${({ color }) => color};
+
     &:hover {
       background-color: inherit;
       transform: ${({ list }) => (list ? 'scale(1.1)' : 'none')};
       transition: ease-in-out 0.2s;
+      box-shadow: none;
+      border: none;
     }
   `,
   PokemonWrapper: styled.div`
@@ -95,16 +98,5 @@ export const S = {
     bottom: 0;
     left: 72px;
     color: red;
-  `,
-  ClearIcon: styled(ClearIcon)`
-    position: absolute;
-    top: 0;
-    right: 0;
-    background-color: black;
-    border-radius: 5px;
-    &:hover {
-      cursor: pointer;
-      color: red;
-    }
   `,
 }

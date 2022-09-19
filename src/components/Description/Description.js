@@ -1,52 +1,75 @@
 import { useContext, useEffect, useState } from 'react'
 import Context from '../../Context'
 import { S } from './Description.styled'
-
-const Description = ({ data, details }) => {
-  const { statsFromJsonServer } = useContext(Context)
+import { useTheme } from '@mui/material'
+const Description = ({ details, pokemonData }) => {
+  const { statsFromJsonServer, themeColor, setStatsFromJsonServer } =
+    useContext(Context)
   const [experience, setExperience] = useState(null)
   const [name, setName] = useState(null)
+  const { palette } = useTheme()
   const checkPokemonIsInArr = array =>
-    array?.some(({ name }) => name === data.name)
+    array?.some(({ name }) => name === pokemonData?.name)
 
   useEffect(() => {
-    const newName = `${data?.name
-      ?.substring(0, 1)
-      .toUpperCase()}${data?.name.substring(1, data?.name.length)}`
-    setName(newName)
-  }, [])
+    if (pokemonData) {
+      const newName = `${pokemonData?.name
+        ?.substring(0, 1)
+        .toUpperCase()}${pokemonData?.name.substring(
+        1,
+        pokemonData?.name.length
+      )}`
+      setName(newName)
+    }
+  }, [pokemonData])
 
   useEffect(() => {
     const isThere = checkPokemonIsInArr(statsFromJsonServer)
-    isThere
-      ? statsFromJsonServer.map(({ name, experience }) => {
-          if (name === data.name) setExperience(experience)
-        })
-      : setExperience(data.base_experience)
-  }, [statsFromJsonServer])
+
+    if (isThere) {
+      statsFromJsonServer.map(({ name, experience, weight, height }) => {
+        if (name === pokemonData.name) {
+          setExperience(experience)
+        }
+      })
+    } else {
+      setExperience(pokemonData?.experience)
+    }
+  }, [name])
 
   return (
-    <S.DescripionWrapper>
-      <S.H1 details={details}>{name}</S.H1>
+    <S.DescripionWrapper color={palette[themeColor].textColorSimplePokemonCard}>
+      <S.H1 details={details} color={palette[themeColor].navBar}>
+        {name}
+      </S.H1>
       <S.StatisticWrapper>
         <S.DoubleDecripionWrapper>
-          <S.Span>
-            {data.height}
-            <S.SpanPropsName> Height</S.SpanPropsName>
+          <S.Span color={palette[themeColor].statsColor}>
+            {pokemonData?.height}
+            <S.SpanPropsName color={palette[themeColor].statsColorBig}>
+              Height
+            </S.SpanPropsName>
           </S.Span>
-          <S.Span>
-            {data.weight}
-            <S.SpanPropsName>Weight</S.SpanPropsName>
+          <S.Span color={palette[themeColor].statsColor}>
+            {pokemonData?.weight}
+            <S.SpanPropsName color={palette[themeColor].statsColorBig}>
+              Weight
+            </S.SpanPropsName>
           </S.Span>
         </S.DoubleDecripionWrapper>
         <S.DoubleDecripionWrapper>
-          <S.Span>
+          <S.Span color={palette[themeColor].statsColor}>
             {experience}
-            <S.SpanPropsName>Base experience</S.SpanPropsName>
+            <S.SpanPropsName color={palette[themeColor].statsColorBig}>
+              Base experience
+            </S.SpanPropsName>
           </S.Span>
-          <S.Span>
-            {data.abilities[0].ability.name}
-            <S.SpanPropsName>Ability</S.SpanPropsName>
+
+          <S.Span color={palette[themeColor].statsColor}>
+            {pokemonData?.ability}
+            <S.SpanPropsName color={palette[themeColor].statsColorBig}>
+              Ability
+            </S.SpanPropsName>
           </S.Span>
         </S.DoubleDecripionWrapper>
       </S.StatisticWrapper>
